@@ -48,6 +48,9 @@ switch ($method) {
                     http_response_code(404);
                     echo json_encode(["status" => "error", "message" => "Curso não encontrado"]);
                 }
+            } else if (isset($_GET["search"])) {
+                $cursos = $controller->buscarCursosPorNome($_GET["search"]);
+                echo json_encode($cursos); 
             } else {
                 echo json_encode($controller->listarCursos());
             }

@@ -14,7 +14,6 @@ class Banco {
             $this->conn = new PDO($dsn, $this->user, $this->pass);
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            echo json_encode(["mensagem" => "Conexão bem-sucedida."]);
         } catch(PDOException $e) {
             echo json_encode(["erro" => "Falha na conexão: " . $e->getMessage()]);
         }

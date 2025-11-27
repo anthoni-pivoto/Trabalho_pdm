@@ -82,4 +82,25 @@ class CursoController {
             return false;
         }
     }
+    public function buscarCursosPorNome($termo) {
+        try {
+            $sql = "SELECT *
+                    FROM tb_curso
+                    WHERE unaccent(s_nm_curso) ILIKE unaccent(:termo)
+                    OR unaccent(s_nm_curso) % unaccent(:termo)
+                    ORDER BY similarity(unaccent(s_nm_curso), unaccent(:termo)) DESC";
+
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(":termo", "%$termo%", PDO::PARAM_STR);
+            $stmt->execute();
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $e) {
+            echo json_encode([
+                'erro' => "Falha ao buscar cursos: " . $e->getMessage()
+            ]);
+            return [];
+        }
+    }
 }

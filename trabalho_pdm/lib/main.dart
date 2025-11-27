@@ -32,7 +32,42 @@ class PesquisaScreen extends StatefulWidget {
 class _PesquisaScreenState extends State<PesquisaScreen> {
   // Variável para controlar qual ícone da barra inferior está selecionado
   int _selectedIndex = 0;
+  List cursos = [];
+  bool carregando = false; 
 
+Future<void> buscarCursos(String query) async {
+    if (query.isEmpty) {
+      setState(() => cursos = []);
+      return;
+    }
+
+    setState(() => carregando = true);
+    print("Buscando cursos: $query");
+    final url = Uri.parse(
+        "http://200.19.1.19/usuario02/api/curso.php?search=$query");
+
+    try {
+      final response = await http.get(url);
+      print("Status code: ${response.statusCode}");
+      if (response.statusCode == 200) {
+        setState(() {
+          print("Body recebido: ${response.body}");
+          cursos = jsonDecode(response.body);
+          carregando = false;
+        });
+      } else {
+        setState(() {
+          cursos = [];
+          carregando = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        cursos = [];
+        carregando = false;
+      });
+    }
+  }
   // Função chamada quando um item da barra é tocado
   void _onItemTapped(int index) {
     setState(() {
@@ -40,6 +75,121 @@ class _PesquisaScreenState extends State<PesquisaScreen> {
     });
     // Aqui você pode adicionar lógica de navegação para as outras telas
     // ex: if (index == 3) { Navigator.push(context, ...) }
+  }
+
+  Widget buildCourseItem({
+    required String titulo,
+    required String descricao,
+    required VoidCallback onIngresso,
+    required VoidCallback onConversar,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  "https://cdn-icons-png.flaticon.com/128/2901/2901131.png",
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      titulo,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      descricao,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                
+                child: ElevatedButton(
+                  onPressed: onIngresso,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 214, 214, 214), // Cor cinza
+                    elevation: 4,                      // Elevação (sombra)
+                    shadowColor: Colors.black,         // Cor da sombra
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4), // Bordas quadradas
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                  ),
+                  child: const Text(
+                    "Ingressar",
+                    style: TextStyle(color: Colors.black, fontSize: 18),
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: onConversar,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 214, 214, 214), // Cor cinza
+                    elevation: 4,                      // Elevação (sombra)
+                    shadowColor: Colors.black,         // Cor da sombra
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4), // Bordas quadradas
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                  ),
+                  child: const Text(
+                    "Conversar",
+                    style: TextStyle(color: Colors.black, fontSize: 18),
+                  ),
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
   }
 
   @override
@@ -113,6 +263,7 @@ class _PesquisaScreenState extends State<PesquisaScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 16.0),
             child: TextField(
+              onChanged: (value) => buscarCursos(value),
               decoration: InputDecoration(
                 hintText: 'Pesquisar...', // Texto de sugestão
                 // Ícone da lupa dentro da barra
@@ -131,17 +282,38 @@ class _PesquisaScreenState extends State<PesquisaScreen> {
 
           // 4. O Texto Central (ocupa o resto da tela)
           Expanded(
-            child: Center(
-              child: Text(
-                'Pesquise por um curso\npara exibir os resultados',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey[800], // Cor do texto
-                  height: 1.5, // Espaçamento entre linhas
-                ),
-              ),
-            ),
+            child:  carregando
+                ? const Center(child: CircularProgressIndicator())
+                : cursos.isEmpty
+                    ? Center(
+                        child: Text(
+                          'Pesquise por um curso\npara exibir os resultados',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey[800],
+                            height: 1.5,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: cursos.length,
+                        itemBuilder: (context, index) {
+                          final curso = cursos[index];
+
+                          return buildCourseItem(
+                            titulo: curso['s_nm_curso'],
+                            descricao: curso['s_descricao_curso'],
+                            onIngresso: () {
+                              print("Ingressou no curso ${curso['id_curso']}");
+                            },
+                            onConversar: () {
+                              print("Conversar sobre o curso ${curso['id_curso']}");
+                            },
+                          );
+                        },
+                      ),
           ),
         ],
       ),
