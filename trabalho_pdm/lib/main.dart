@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final id = prefs.getInt("id_usuario");
+  
+  runApp(MyApp(isLogged: id != null,));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLogged;
+
+  const MyApp({super.key, required this.isLogged});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +24,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const LoginPage(), 
+      home: isLogged ? HomePage() : LoginPage(), 
     );
   }
 }
@@ -30,28 +37,23 @@ class PesquisaScreen extends StatefulWidget {
 }
 
 class _PesquisaScreenState extends State<PesquisaScreen> {
-  // Variável para controlar qual ícone da barra inferior está selecionado
-  int _selectedIndex = 0;
   List cursos = [];
   bool carregando = false; 
 
-Future<void> buscarCursos(String query) async {
+  Future<void> buscarCursos(String query) async {
     if (query.isEmpty) {
       setState(() => cursos = []);
       return;
     }
 
     setState(() => carregando = true);
-    print("Buscando cursos: $query");
     final url = Uri.parse(
         "http://200.19.1.19/usuario02/api/curso.php?search=$query");
 
     try {
       final response = await http.get(url);
-      print("Status code: ${response.statusCode}");
       if (response.statusCode == 200) {
         setState(() {
-          print("Body recebido: ${response.body}");
           cursos = jsonDecode(response.body);
           carregando = false;
         });
@@ -67,14 +69,6 @@ Future<void> buscarCursos(String query) async {
         carregando = false;
       });
     }
-  }
-  // Função chamada quando um item da barra é tocado
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    // Aqui você pode adicionar lógica de navegação para as outras telas
-    // ex: if (index == 3) { Navigator.push(context, ...) }
   }
 
   Widget buildCourseItem({
@@ -282,7 +276,7 @@ Future<void> buscarCursos(String query) async {
 
           // 4. O Texto Central (ocupa o resto da tela)
           Expanded(
-            child:  carregando
+            child: carregando
                 ? const Center(child: CircularProgressIndicator())
                 : cursos.isEmpty
                     ? Center(
@@ -317,48 +311,250 @@ Future<void> buscarCursos(String query) async {
           ),
         ],
       ),
-
-      // 5. A Barra de Navegação Inferior (BottomNavBar)// 
-      // 5. A Barra de Navegação Inferior (BottomNavBar)//
-      // 5. A Barra de Navegação Inferior (BottomNavBar)//
-      // 5. A Barra de Navegação Inferior (BottomNavBar)//
-      // 5. A Barra de Navegação Inferior (BottomNavBar)//
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black, // Fundo preto
-        type: BottomNavigationBarType.fixed, // Garante que todos os 4 apareçam
-        showSelectedLabels: false, // Não mostrar texto
-        showUnselectedLabels: false, // Não mostrar texto
-
-        // Cor dos ícones (branco selecionado, cinza não selecionado)
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.grey[400],
-
-        // Definição dos 4 ícones
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Pesquisar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.book_outlined),
-            label: 'Cursos',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.group_work_outlined), // Ícone de "grupo"
-            label: 'Aulas',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Perfil',
-          ),
-        ],
-        currentIndex: _selectedIndex, // Usa a variável de estado
-        onTap: _onItemTapped, // Chama a função ao tocar
-      ),
     );
   }
 }
 
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({Key? key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  String userName = "";
+  String userEmail = "";
+  String userPhone = "";
+  @override
+  void initState() {
+    super.initState();
+    carregarDadosUsuario();
+  }
+
+  void carregarDadosUsuario() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState( () {
+      userName = prefs.getString("nm_usuario") ?? "";
+      userEmail = prefs.getString("email_usuario") ?? "";
+      userPhone = prefs.getString("i_numero_telefone") ?? "";
+    });
+  }
+
+  void logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove("id_usuario");
+    await prefs.remove("nm_usuario");
+    await prefs.remove("email_usuario");
+    await prefs.remove("i_numero_telefone");
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100.0), // Altura do AppBar
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.black, // Cor de fundo preta
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(24), // Bordas arredondadas
+            ),
+          ),
+          // Usamos SafeArea para evitar a barra de status do celular
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Row(
+                children: [
+                  // Botão de voltar
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_rounded,
+                        color: Colors.white),
+                    onPressed: () {
+                      // Se esta tela foi 'pushReplacement' do login,
+                      // o 'pop' pode não funcionar como esperado.
+                      // Mas se foi 'push', está correto.
+                      if (Navigator.canPop(context)) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 8.0),
+                  // Título
+                  const Text(
+                    'Perfil',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      body:SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Avatar grande
+          const Icon(
+            Icons.account_circle,
+            size: 140,
+            color: Colors.black,
+          ),
+
+          const SizedBox(height: 24),
+
+          // Nome
+          _buildProfileInfo(
+            icon: Icons.person,
+            label: userName,
+          ),
+
+          // Email do usuário
+          _buildProfileInfo(
+            icon: Icons.email,
+            label: userEmail,
+          ),
+
+          // Telefone (com botão editar)
+          _buildProfileInfo(
+            icon: Icons.phone,
+            label: userPhone,
+            showEdit: true,
+          ),
+
+          const SizedBox(height: 30),
+
+          // Botão logout
+          ElevatedButton(
+            onPressed: logout,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 45),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text("Sair"),
+          ),
+        ],
+      ),
+    )
+    );
+  }
+Widget _buildProfileInfo({
+  required IconData icon,
+  required String label,
+  bool showEdit = false,
+}) {
+  return Column(
+    children: [
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(icon, size: 24, color: Colors.black87),
+          const SizedBox(width: 12),
+
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+
+          if (showEdit)
+            Icon(Icons.edit, size: 20, color: Colors.black87),
+        ],
+      ),
+
+      const SizedBox(height: 6),
+
+      // Linha fina de separação
+      Container(
+        height: 1,
+        color: Colors.black54,
+      ),
+
+      const SizedBox(height: 12),
+    ],
+  );
+}
+
+}
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _screens = [
+    PesquisaScreen(),
+    Center(child: Text("Cursos em breve")),
+    Center(child: Text("Aulas em breve")),
+    ProfilePage(),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _screens[_selectedIndex],
+
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.black,
+        type: BottomNavigationBarType.fixed,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.grey[400],
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: "Pesquisar",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.book_outlined),
+            label: "Cursos",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.group_work_outlined),
+            label: "Aulas",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: "Perfil",
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -371,6 +567,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  var usuario = {};
 
   Future<void> _login() async {
     const String apiUrl = 'http://200.19.1.19/usuario02/api/usuario.php';
@@ -395,16 +592,21 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (response.statusCode == 200) {
+        usuario = jsonDecode(response.body);
+        final prefs = await SharedPreferences.getInstance();
+
+        await prefs.setInt("id_usuario", usuario['id_usuario']);
+        await prefs.setString("nm_usuario", usuario['s_nome'] ?? "");
+        await prefs.setString("email_usuario", usuario['s_email'] ?? "");
+        await prefs.setString("i_numero_telefone", usuario['i_numero_telefone'] ?? "");
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Login realizado com sucesso!')),
-          
           );
           Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const PesquisaScreen(),
-          ),
-        );
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
         }
       } else {
         if (mounted) {

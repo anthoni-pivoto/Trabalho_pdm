@@ -33,11 +33,7 @@ switch ($method) {
                         $usuarioLogado = $controller->login($dados->email_usuario, $dados->pwd_usuario);
                         if ($usuarioLogado) {
                             http_response_code(200);
-                            echo json_encode([
-                                "sucesso" => true,
-                                "message" => "Login bem-sucedido!",
-                                "usuario" => $usuarioLogado 
-                            ]);
+                            echo json_encode($usuarioLogado);
                         } else {
                             http_response_code(401);
                             echo json_encode([
