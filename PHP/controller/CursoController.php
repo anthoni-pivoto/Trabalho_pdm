@@ -36,7 +36,16 @@ class CursoController {
             return [];
         }
     }
-
+    public function listarCursoPorProfessor($id_usuario) {
+        try {
+            $sql = "SELECT * FROM tb_curso where id_usuario = {$id_usuario} ORDER BY id_curso";
+            $stmt = $this->conn->query($sql);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            echo json_encode(["erro" => "Falha ao listar cursos: " . $e->getMessage()]);
+            return [];
+        }
+    }
     public function buscarCurso($id_curso) {
         try {
             $sql = "SELECT * FROM tb_curso WHERE id_curso = :id_curso";

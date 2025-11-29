@@ -40,8 +40,8 @@ switch ($method) {
 
     case "GET":
         try {
-            if (isset($_GET["id"])) {
-                $curso = $controller->buscarCurso($_GET["id"]);
+            if (isset($_GET["id_usuario"])) {
+                $curso = $controller->listarCursoPorProfessor($_GET["id_usuario"]);
                 if ($curso) {
                     echo json_encode($curso);
                 } else {
