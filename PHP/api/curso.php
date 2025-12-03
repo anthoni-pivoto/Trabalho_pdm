@@ -20,9 +20,14 @@ switch ($method) {
         try {
             $data = json_decode(file_get_contents("php://input")); // sem ,true → objeto
             if (!empty($data->nm_curso) && !empty($data->ds_curso) && !empty($data->id_usuario)) {
-                $curso = new Curso($data->id_usuario, $data->nm_curso, $data->ds_curso);
-
+                $curso = new Curso(
+                    $data->nm_curso,
+                    $data->ds_curso,
+                    $data->id_usuario,
+                    null
+                );
                 if ($controller->criarCurso($curso)) {
+                    
                     echo json_encode(["status" => "success", "message" => "Curso criado com sucesso"]);
                 } else {
                     http_response_code(500);
@@ -46,11 +51,11 @@ switch ($method) {
                     echo json_encode($curso);
                 } else {
                     http_response_code(404);
-                    echo json_encode(["status" => "error", "message" => "Curso não encontrado"]);
+                    echo json_encode(["status" => "error", "message" => "Cursos não encontrados para professor especificado"]);
                 }
             } else if (isset($_GET["search"])) {
                 $cursos = $controller->buscarCursosPorNome($_GET["search"]);
-                echo json_encode($cursos); 
+                echo json_encode($cursos);
             } else {
                 echo json_encode($controller->listarCursos());
             }
