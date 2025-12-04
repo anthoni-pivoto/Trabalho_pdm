@@ -20,6 +20,15 @@ class UsuarioController
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function listarPorId($id)
+    {
+        $sql = "SELECT * FROM tb_usuario WHERE id_usuario = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     public function login($email, $senha)
     {
         try {

@@ -15,7 +15,11 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {
     case 'GET':
-        echo json_encode($controller->listar());
+        if (isset($_GET['id_usuario'])) {
+            echo json_encode($controller->listarPorId($_GET['id_usuario']));
+        } else {
+            echo json_encode($controller->listar());
+        }
         break;
     case 'POST':
         try {

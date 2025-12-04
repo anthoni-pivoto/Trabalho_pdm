@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +40,20 @@ class PesquisaScreen extends StatefulWidget {
 class _PesquisaScreenState extends State<PesquisaScreen> {
   List cursos = [];
   bool carregando = false;
+
+  Future<void> openWhatsApp({
+    required String phone,
+    String? text,
+  }) async {
+    final String encodedText = Uri.encodeComponent(text ?? "");
+    final Uri url = Uri.parse("https://wa.me/$phone?text=$encodedText");
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      throw "Não foi possível abrir o WhatsApp";
+    }
+  }
 
   Future<void> buscarCursos(String query) async {
     if (query.isEmpty) {
@@ -316,7 +331,27 @@ class _PesquisaScreenState extends State<PesquisaScreen> {
                         onIngresso: () {
                           print("Ingressou no curso ${curso['id_curso']}");
                         },
-                        onConversar: () {
+                        onConversar: () async {
+                          final uriProfessor = Uri.parse("http://200.19.1.19/usuario02/api/usuario.php?id_usuario=${int.parse(curso['id_usuario'].toString())}");
+                          final response = await http.get(uriProfessor);
+                          if (response.statusCode != 200) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Erro ao conectar com professor')),
+                            );
+                            return;
+                          }
+                          final professor = jsonDecode(response.body);
+                          final telefone = professor['i_numero_telefone'].toString();
+                          if (telefone.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Professor não possui telefone cadastrado')),
+                            );
+                            return;
+                          } 
+                          openWhatsApp(
+                            phone: telefone,
+                            text: "Olá! Gostaria de saber mais informações.",
+                          );
                           print("Conversar sobre o curso ${curso['id_curso']}");
                         },
                       );
@@ -366,7 +401,7 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() {
       userName = prefs.getString("nm_usuario") ?? "";
       userEmail = prefs.getString("email_usuario") ?? "";
-      userPhone = prefs.getString("i_numero_telefone") ?? "";
+      userPhone = prefs.getInt("i_numero_telefone").toString();
     });
   }
 
@@ -619,7 +654,7 @@ class _LoginPageState extends State<LoginPage> {
         await prefs.setInt("id_usuario", usuario['id_usuario']);
         await prefs.setString("nm_usuario", usuario['s_nome'] ?? "");
         await prefs.setString("email_usuario", usuario['s_email'] ?? "");
-        await prefs.setString(
+        await prefs.setInt(
           "i_numero_telefone",
           usuario['i_numero_telefone'] ?? "",
         );
