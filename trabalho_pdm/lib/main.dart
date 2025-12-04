@@ -340,6 +340,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String userName = "";
   String userEmail = "";
   String userPhone = "";
+  String userPhotoUrl = "";
   @override
   void initState() {
     super.initState();
@@ -348,6 +349,20 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void carregarDadosUsuario() async {
     final prefs = await SharedPreferences.getInstance();
+    final int? idUsuario = prefs.getInt("id_usuario");
+    if (idUsuario == null) return;
+    final int? idMidia = prefs.getInt("id_midia");
+    if (idMidia != null && idMidia > 0) {
+      final uriProfilePic =
+      Uri.parse("http://200.19.1.19/usuario02/api/arquivo.php?id_midia=$idMidia");
+      final response = await http.get(uriProfilePic);
+      if (response.statusCode == 200) {
+        String caminho = jsonDecode(response.body)["s_caminho"];
+        setState(() {
+          userPhotoUrl = "http://200.19.1.19/usuario02/$caminho";
+        });
+      }
+    }
     setState(() {
       userName = prefs.getString("nm_usuario") ?? "";
       userEmail = prefs.getString("email_usuario") ?? "";
@@ -421,7 +436,16 @@ class _ProfilePageState extends State<ProfilePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Avatar grande
-            const Icon(Icons.account_circle, size: 140, color: Colors.black),
+            CircleAvatar(
+              radius: 70,
+              backgroundColor: Colors.grey.shade300,
+              backgroundImage: userPhotoUrl.isNotEmpty
+                  ? NetworkImage(userPhotoUrl)
+                  : null,
+              child: userPhotoUrl.isEmpty
+                  ? const Icon(Icons.person, size: 80, color: Colors.black54)
+                  : null,
+            ),
 
             const SizedBox(height: 24),
 
@@ -599,6 +623,7 @@ class _LoginPageState extends State<LoginPage> {
           "i_numero_telefone",
           usuario['i_numero_telefone'] ?? "",
         );
+        await prefs.setInt("id_midia", usuario['id_midia']);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
