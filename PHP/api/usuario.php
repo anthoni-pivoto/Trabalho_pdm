@@ -26,7 +26,7 @@ switch ($method) {
             $dados = json_decode(file_get_contents("php://input"));
             if (!isset($dados->action)) {
                 http_response_code(400);
-                echo json_encode(["sucesso" => false, "message" => "AÃ§Ã£o nÃ£o especificada."]);
+                echo json_encode(["sucesso" => false, "message" => "Ação não especificada."]);
                 break;
             }
             switch ($dados->action) {
@@ -42,7 +42,7 @@ switch ($method) {
                             http_response_code(401);
                             echo json_encode([
                                 "sucesso" => false,
-                                "message" => "Email ou senha invÃ¡lidos."
+                                "message" => "Email ou senha inválidos."
                             ]);
                         }
                     } else {
@@ -65,10 +65,10 @@ switch ($method) {
                         
                         if ($sucesso) {
                             http_response_code(201);
-                            echo json_encode(["sucesso" => true, "message" => "UsuÃ¡rio criado com sucesso."]);
+                            echo json_encode(["sucesso" => true, "message" => "Usuário criado com sucesso."]);
                         } else {
                             http_response_code(500);
-                            echo json_encode(["sucesso" => false, "message" => "Erro ao criar usuÃ¡rio."]);
+                            echo json_encode(["sucesso" => false, "message" => "Erro ao criar usuário."]);
                         }
                     } else {
                         http_response_code(400);
@@ -78,12 +78,12 @@ switch ($method) {
 
                 default:
                     http_response_code(400);
-                    echo json_encode(["sucesso" => false, "message" => "AÃ§Ã£o desconhecida."]);
+                    echo json_encode(["sucesso" => false, "message" => "Ação desconhecida."]);
             }
 
         } catch (Exception $e) {
             http_response_code(400);
-            echo json_encode(["sucesso" => false, "message" => "RequisiÃ§Ã£o invÃ¡lida: " . $e->getMessage()]);
+            echo json_encode(["sucesso" => false, "message" => "Requisição inválida: " . $e->getMessage()]);
         }
         break;
         
@@ -127,5 +127,5 @@ switch ($method) {
         break;
 
     default:
-        echo json_encode(["erro" => "MÃ©todo nÃ£o permitido"]);
+        echo json_encode(["erro" => "Método não permitido"]);
 }

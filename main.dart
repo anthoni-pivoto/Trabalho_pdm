@@ -41,10 +41,7 @@ class _PesquisaScreenState extends State<PesquisaScreen> {
   List cursos = [];
   bool carregando = false;
 
-  Future<void> openWhatsApp({
-    required String phone,
-    String? text,
-  }) async {
+  Future<void> openWhatsApp({required String phone, String? text}) async {
     final String encodedText = Uri.encodeComponent(text ?? "");
     final Uri url = Uri.parse("https://wa.me/$phone?text=$encodedText");
 
@@ -332,22 +329,31 @@ class _PesquisaScreenState extends State<PesquisaScreen> {
                           print("Ingressou no curso ${curso['id_curso']}");
                         },
                         onConversar: () async {
-                          final uriProfessor = Uri.parse("http://200.19.1.19/usuario02/api/usuario.php?id_usuario=${int.parse(curso['id_usuario'].toString())}");
+                          final uriProfessor = Uri.parse(
+                            "http://200.19.1.19/usuario02/api/usuario.php?id_usuario=${int.parse(curso['id_usuario'].toString())}",
+                          );
                           final response = await http.get(uriProfessor);
                           if (response.statusCode != 200) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Erro ao conectar com professor')),
+                              const SnackBar(
+                                content: Text('Erro ao conectar com professor'),
+                              ),
                             );
                             return;
                           }
                           final professor = jsonDecode(response.body);
-                          final telefone = professor['i_numero_telefone'].toString();
+                          final telefone = professor['i_numero_telefone']
+                              .toString();
                           if (telefone.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Professor não possui telefone cadastrado')),
+                              const SnackBar(
+                                content: Text(
+                                  'Professor não possui telefone cadastrado',
+                                ),
+                              ),
                             );
                             return;
-                          } 
+                          }
                           openWhatsApp(
                             phone: telefone,
                             text: "Olá! Gostaria de saber mais informações.",
@@ -388,8 +394,9 @@ class _ProfilePageState extends State<ProfilePage> {
     if (idUsuario == null) return;
     final int? idMidia = prefs.getInt("id_midia");
     if (idMidia != null && idMidia > 0) {
-      final uriProfilePic =
-      Uri.parse("http://200.19.1.19/usuario02/api/arquivo.php?id_midia=$idMidia");
+      final uriProfilePic = Uri.parse(
+        "http://200.19.1.19/usuario02/api/arquivo.php?id_midia=$idMidia",
+      );
       final response = await http.get(uriProfilePic);
       if (response.statusCode == 200) {
         String caminho = jsonDecode(response.body)["s_caminho"];
@@ -802,17 +809,13 @@ class _CadastroPageState extends State<CadastroPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cadastro de Usuário'),
-        // O botão de "voltar" é adicionado automaticamente pelo Navigator
-      ),
+      appBar: AppBar(title: const Text('Cadastro de Usuário')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              // Campo de Nome
               TextField(
                 controller: _nomeController,
                 decoration: const InputDecoration(
@@ -822,7 +825,6 @@ class _CadastroPageState extends State<CadastroPage> {
                 keyboardType: TextInputType.name,
               ),
               const SizedBox(height: 16.0),
-              // Campo de Email
               TextField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -832,14 +834,12 @@ class _CadastroPageState extends State<CadastroPage> {
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 16.0),
-              // Campo de Senha
               TextField(
                 controller: _passwordController,
                 decoration: const InputDecoration(labelText: 'Senha'),
                 obscureText: true,
               ),
               const SizedBox(height: 32.0),
-              // Botão de Cadastrar
               _isLoading
                   ? const CircularProgressIndicator()
                   : ElevatedButton(
@@ -864,15 +864,11 @@ class ProfessorScreen extends StatefulWidget {
 class _ProfessorScreenState extends State<ProfessorScreen> {
   List cursos = [];
   bool carregando = true;
-
-  // 🔥 estado do modal
   bool modalAberto = false;
+  bool salvando = false;
 
-  // 🔥 controllers dos campos
   TextEditingController nmCursoController = TextEditingController();
   TextEditingController dsCursoController = TextEditingController();
-
-  bool salvando = false;
 
   @override
   void initState() {
@@ -880,7 +876,6 @@ class _ProfessorScreenState extends State<ProfessorScreen> {
     buscarCursosUsuario();
   }
 
-  // 🔥 BUSCAR CURSOS DO USUARIO
   Future<void> buscarCursosUsuario() async {
     final prefs = await SharedPreferences.getInstance();
     final int? idUsuario = prefs.getInt("id_usuario");
@@ -918,7 +913,6 @@ class _ProfessorScreenState extends State<ProfessorScreen> {
     }
   }
 
-  // 🔥 SALVAR NOVO CURSO (POST)
   Future<void> salvarCurso() async {
     final prefs = await SharedPreferences.getInstance();
     final int? idUsuario = prefs.getInt("id_usuario");
@@ -948,14 +942,11 @@ class _ProfessorScreenState extends State<ProfessorScreen> {
       print("BODY: ${response.body}");
 
       if (response.statusCode == 200) {
-        // fecha modal
         setState(() {
           modalAberto = false;
           nmCursoController.clear();
           dsCursoController.clear();
         });
-
-        // recarrega cursos
         buscarCursosUsuario();
       }
     } catch (e) {
@@ -965,7 +956,6 @@ class _ProfessorScreenState extends State<ProfessorScreen> {
     }
   }
 
-  // 🔥 ITEM DA LISTA
   Widget buildCourseItem({required String titulo, required String descricao}) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -1013,19 +1003,15 @@ class _ProfessorScreenState extends State<ProfessorScreen> {
     );
   }
 
-  // 🔥 MODAL DE CRIAÇÃO DE CURSO
   Widget modalAdicionarCurso() {
     if (!modalAberto) return const SizedBox.shrink();
 
     return Stack(
       children: [
-        // Fundo escuro
         GestureDetector(
           onTap: () => setState(() => modalAberto = false),
           child: Container(color: Colors.black.withOpacity(0.4)),
         ),
-
-        // Modal central
         Center(
           child: Container(
             width: 320,
@@ -1042,7 +1028,6 @@ class _ProfessorScreenState extends State<ProfessorScreen> {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
-
                 TextField(
                   controller: nmCursoController,
                   decoration: const InputDecoration(
@@ -1050,9 +1035,7 @@ class _ProfessorScreenState extends State<ProfessorScreen> {
                     border: OutlineInputBorder(),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
                 TextField(
                   controller: dsCursoController,
                   maxLines: 3,
@@ -1061,9 +1044,7 @@ class _ProfessorScreenState extends State<ProfessorScreen> {
                     border: OutlineInputBorder(),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 ElevatedButton(
                   onPressed: () {
                     print("BOTÃO SALVAR FOI CLICADO");
@@ -1112,10 +1093,7 @@ class _ProfessorScreenState extends State<ProfessorScreen> {
               ),
             ),
           ),
-
           backgroundColor: Colors.white,
-
-          // 🔥 LISTA OU LOADING
           body: carregando
               ? const Center(child: CircularProgressIndicator())
               : cursos.isEmpty
@@ -1136,22 +1114,17 @@ class _ProfessorScreenState extends State<ProfessorScreen> {
                     );
                   },
                 ),
-
-          // 🔥 Botão flutuante
           floatingActionButton: FloatingActionButton(
             onPressed: () => setState(() => modalAberto = true),
             backgroundColor: Colors.black,
             child: const Icon(Icons.add, size: 32, color: Colors.white),
           ),
         ),
-
-        // 🔥 Overlay do modal
         modalAdicionarCurso(),
       ],
     );
   }
 }
-
 
 // ============================================================================
 // TELA 1: LISTA DE CURSOS (AlunoScreen)
@@ -1164,12 +1137,12 @@ class AlunoScreen extends StatefulWidget {
 }
 
 class _AlunoScreenState extends State<AlunoScreen> {
-  final String apiUrl = "http://200.19.1.19/usuario02/api/curso.php"; 
-  final String idUsuario = "1"; 
+  final String apiUrl = "http://200.19.1.19/usuario02/api/curso.php";
+  final String idUsuario = "1";
 
   late Future<List<dynamic>> _cursosFuture;
 
-  @override 
+  @override
   void initState() {
     super.initState();
     _cursosFuture = fetchCursos();
@@ -1190,15 +1163,11 @@ class _AlunoScreenState extends State<AlunoScreen> {
     }
   }
 
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          Expanded(child: _buildBody()),
-        ],
-      ),
+      body: Column(children: [Expanded(child: _buildBody())]),
     );
   }
 
@@ -1210,10 +1179,14 @@ class _AlunoScreenState extends State<AlunoScreen> {
         children: [
           const Text(
             "Meus cursos",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
           const SizedBox(height: 20),
-          
+
           Expanded(
             child: FutureBuilder<List<dynamic>>(
               future: _cursosFuture,
@@ -1222,7 +1195,10 @@ class _AlunoScreenState extends State<AlunoScreen> {
                   return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
                   return Center(
-                    child: Text("Erro: ${snapshot.error}", style: const TextStyle(color: Colors.red)),
+                    child: Text(
+                      "Erro: ${snapshot.error}",
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(child: Text("Nenhum curso encontrado."));
@@ -1234,17 +1210,24 @@ class _AlunoScreenState extends State<AlunoScreen> {
                     itemBuilder: (context, index) {
                       final curso = cursos[index];
 
-                      final idCurso = curso["id_curso"]?.toString() ?? "0"; 
-                      
-                      final titulo = curso["s_nm_curso"]?.toString() 
-                                  ?? curso["nm_curso"]?.toString() 
-                                  ?? "Sem título"; 
-                                  
-                      final descricao = curso["s_descricao_curso"]?.toString() 
-                                     ?? curso["ds_curso"]?.toString() 
-                                     ?? "Sem descrição";
+                      final idCurso = curso["id_curso"]?.toString() ?? "0";
 
-                      return _buildCourseItem(context, idCurso, titulo, descricao); 
+                      final titulo =
+                          curso["s_nm_curso"]?.toString() ??
+                          curso["nm_curso"]?.toString() ??
+                          "Sem título";
+
+                      final descricao =
+                          curso["s_descricao_curso"]?.toString() ??
+                          curso["ds_curso"]?.toString() ??
+                          "Sem descrição";
+
+                      return _buildCourseItem(
+                        context,
+                        idCurso,
+                        titulo,
+                        descricao,
+                      );
                     },
                   );
                 }
@@ -1256,7 +1239,12 @@ class _AlunoScreenState extends State<AlunoScreen> {
     );
   }
 
-  Widget _buildCourseItem(BuildContext context, String id, String title, String subtitle) {
+  Widget _buildCourseItem(
+    BuildContext context,
+    String id,
+    String title,
+    String subtitle,
+  ) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1264,7 +1252,8 @@ class _AlunoScreenState extends State<AlunoScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => EtapasCursoScreen(idCurso: id, tituloCurso: title),
+              builder: (context) =>
+                  EtapasCursoScreen(idCurso: id, tituloCurso: title),
             ),
           );
         },
@@ -1273,12 +1262,17 @@ class _AlunoScreenState extends State<AlunoScreen> {
           child: Row(
             children: [
               Container(
-                width: 60, height: 60,
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
                   color: Colors.lightBlue.shade50,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.view_in_ar, color: Colors.lightBlueAccent, size: 30),
+                child: const Icon(
+                  Icons.view_in_ar,
+                  color: Colors.lightBlueAccent,
+                  size: 30,
+                ),
               ),
               const SizedBox(width: 15),
               Expanded(
@@ -1287,18 +1281,25 @@ class _AlunoScreenState extends State<AlunoScreen> {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.black,
+                      ),
                     ),
                     const SizedBox(height: 5),
                     Text(
                       subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -1315,9 +1316,9 @@ class EtapasCursoScreen extends StatefulWidget {
   final String tituloCurso;
 
   const EtapasCursoScreen({
-    super.key, 
-    required this.idCurso, 
-    required this.tituloCurso
+    super.key,
+    required this.idCurso,
+    required this.tituloCurso,
   });
 
   @override
@@ -1325,7 +1326,7 @@ class EtapasCursoScreen extends StatefulWidget {
 }
 
 class _EtapasCursoScreenState extends State<EtapasCursoScreen> {
-  final String apiUrl = "http://200.19.1.19/usuario02/api/etapa.php"; 
+  final String apiUrl = "http://200.19.1.19/usuario02/api/etapa.php";
 
   late Future<List<dynamic>> _etapasFuture;
 
@@ -1343,13 +1344,13 @@ class _EtapasCursoScreenState extends State<EtapasCursoScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
-            width: 40, height: 40,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               border: Border.all(color: Colors.white, width: 1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: 
-            IconButton(
+            child: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new, size: 18),
               onPressed: () {
                 Navigator.pop(context);
@@ -1358,13 +1359,18 @@ class _EtapasCursoScreenState extends State<EtapasCursoScreen> {
           ),
           const Text(
             "Aluno",
-            style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(width: 40),
         ],
       ),
     );
   }
+
   Future<List<dynamic>> fetchEtapas() async {
     try {
       final uri = Uri.parse("$apiUrl?id_curso=${widget.idCurso}");
@@ -1395,40 +1401,56 @@ class _EtapasCursoScreenState extends State<EtapasCursoScreen> {
                 children: [
                   Text(
                     widget.tituloCurso,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
                   const SizedBox(height: 20),
-                  
+
                   Expanded(
                     child: FutureBuilder<List<dynamic>>(
                       future: _etapasFuture,
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
                         } else if (snapshot.hasError) {
                           return Center(child: Text("Erro: ${snapshot.error}"));
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
                           return const Text("Nenhuma etapa disponível.");
                         }
 
                         final etapas = snapshot.data!;
-                        
+
                         return ListView.builder(
                           padding: EdgeInsets.zero,
                           itemCount: etapas.length,
                           itemBuilder: (context, index) {
                             final etapa = etapas[index];
-                            
-                            String idDaEtapa = etapa["id_etapa"]?.toString() ?? "${index + 1}";
+
+                            String idDaEtapa =
+                                etapa["id_etapa"]?.toString() ?? "${index + 1}";
                             String titulo = "Etapa $idDaEtapa";
-                            
-                            String descricaoVisual = etapa["s_descricao"]?.toString() 
-                                          ?? etapa["ds_tipo"]?.toString() 
-                                          ?? "";
 
-                           String idTipoEtapa = (etapa["id_tipo_etapa"] ?? "0").toString();
+                            String descricaoVisual =
+                                etapa["s_descricao"]?.toString() ??
+                                etapa["ds_tipo"]?.toString() ??
+                                "";
 
-                            return _buildEtapaItem(idDaEtapa, titulo, descricaoVisual, idTipoEtapa);
+                            String idTipoEtapa = (etapa["id_tipo_etapa"] ?? "0")
+                                .toString();
+
+                            return _buildEtapaItem(
+                              idDaEtapa,
+                              titulo,
+                              descricaoVisual,
+                              idTipoEtapa,
+                            );
                           },
                         );
                       },
@@ -1440,12 +1462,16 @@ class _EtapasCursoScreenState extends State<EtapasCursoScreen> {
           ),
         ],
       ),
-      
     );
   }
 
-  Widget _buildEtapaItem(String idEtapa, String titulo, String descricao, String idTipoEtapa) {
-    if (titulo.isEmpty) return const SizedBox.shrink(); 
+  Widget _buildEtapaItem(
+    String idEtapa,
+    String titulo,
+    String descricao,
+    String idTipoEtapa,
+  ) {
+    if (titulo.isEmpty) return const SizedBox.shrink();
 
     return Material(
       color: Colors.transparent,
@@ -1455,9 +1481,9 @@ class _EtapasCursoScreenState extends State<EtapasCursoScreen> {
             context,
             MaterialPageRoute(
               builder: (context) => ConteudoEtapaScreen(
-                idEtapa: idEtapa,   
+                idEtapa: idEtapa,
                 tituloEtapa: titulo,
-                idTipoEtapa: idTipoEtapa, 
+                idTipoEtapa: idTipoEtapa,
               ),
             ),
           );
@@ -1469,7 +1495,11 @@ class _EtapasCursoScreenState extends State<EtapasCursoScreen> {
             children: [
               Text(
                 titulo,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
               if (descricao.isNotEmpty) ...[
                 const SizedBox(height: 4),
@@ -1492,13 +1522,13 @@ class _EtapasCursoScreenState extends State<EtapasCursoScreen> {
 class ConteudoEtapaScreen extends StatefulWidget {
   final String idEtapa;
   final String tituloEtapa;
-  final String idTipoEtapa; 
+  final String idTipoEtapa;
 
   const ConteudoEtapaScreen({
-    super.key, 
-    required this.idEtapa, 
-    required this.tituloEtapa, 
-    required this.idTipoEtapa
+    super.key,
+    required this.idEtapa,
+    required this.tituloEtapa,
+    required this.idTipoEtapa,
   });
 
   @override
@@ -1507,11 +1537,12 @@ class ConteudoEtapaScreen extends StatefulWidget {
 
 class _ConteudoEtapaScreenState extends State<ConteudoEtapaScreen> {
   final String apiUrlArquivo = "http://200.19.1.19/usuario02/api/arquivo.php";
-  final String apiUrlQuestionario = "http://200.19.1.19/usuario02/api/questionario.php"; 
+  final String apiUrlQuestionario =
+      "http://200.19.1.19/usuario02/api/questionario.php";
 
   bool _isLoading = true;
   String _mensagemErro = "";
-  
+
   Map<String, dynamic>? _dadosArquivo;
   String? _nomeQuestionario;
   String? _idQuestionarioReal;
@@ -1549,15 +1580,16 @@ class _ConteudoEtapaScreenState extends State<ConteudoEtapaScreen> {
   }
 
   // Busca o Nome do Questionário
- Future<void> _fetchQuestionario() async {
+  Future<void> _fetchQuestionario() async {
     final uri = Uri.parse("$apiUrlQuestionario?id_etapa=${widget.idEtapa}");
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       setState(() {
-        _nomeQuestionario = data["nm_questionario"]?.toString() ?? "Questionário";
-        _idQuestionarioReal = data["id_questionario"]?.toString(); 
+        _nomeQuestionario =
+            data["nm_questionario"]?.toString() ?? "Questionário";
+        _idQuestionarioReal = data["id_questionario"]?.toString();
       });
     } else {
       throw Exception("${response.body}");
@@ -1573,7 +1605,7 @@ class _ConteudoEtapaScreenState extends State<ConteudoEtapaScreen> {
         _dadosArquivo = json.decode(response.body);
       });
     } else {
-      _dadosArquivo = null; 
+      _dadosArquivo = null;
     }
   }
 
@@ -1583,7 +1615,10 @@ class _ConteudoEtapaScreenState extends State<ConteudoEtapaScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A1A),
         iconTheme: const IconThemeData(color: Colors.white),
-        title: Text(widget.tituloEtapa, style: const TextStyle(color: Colors.white)),
+        title: Text(
+          widget.tituloEtapa,
+          style: const TextStyle(color: Colors.white),
+        ),
       ),
       body: _buildBody(),
     );
@@ -1598,11 +1633,12 @@ class _ConteudoEtapaScreenState extends State<ConteudoEtapaScreen> {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text(_mensagemErro, 
+          child: Text(
+            _mensagemErro,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.red)
+            style: const TextStyle(color: Colors.red),
           ),
-        )
+        ),
       );
     }
 
@@ -1631,36 +1667,44 @@ class _ConteudoEtapaScreenState extends State<ConteudoEtapaScreen> {
               _nomeQuestionario ?? "Carregando...",
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 24, 
-                fontWeight: FontWeight.bold, 
-                color: Colors.black87
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
               ),
             ),
             const SizedBox(height: 40),
-           ElevatedButton(
+            ElevatedButton(
               onPressed: () {
                 if (_idQuestionarioReal != null && _idQuestionarioReal != "0") {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TelaResolverQuestionario(
-                          idQuestionario: _idQuestionarioReal!,
-                          nomeQuestionario: _nomeQuestionario ?? "Questionário",
-                        ),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TelaResolverQuestionario(
+                        idQuestionario: _idQuestionarioReal!,
+                        nomeQuestionario: _nomeQuestionario ?? "Questionário",
                       ),
-                    );
+                    ),
+                  );
                 } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Erro: ID do questionário não encontrado."))
-                    );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Erro: ID do questionário não encontrado."),
+                    ),
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 15,
+                ),
               ),
-              child: const Text("INICIAR", style: TextStyle(color: Colors.white, fontSize: 18)),
-            )
+              child: const Text(
+                "INICIAR",
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            ),
           ],
         ),
       ),
@@ -1673,13 +1717,15 @@ class _ConteudoEtapaScreenState extends State<ConteudoEtapaScreen> {
       return const Center(child: Text("Nenhum conteúdo encontrado."));
     }
 
-    final urlArquivo = _dadosArquivo!["s_caminho"]?.toString() 
-                    ?? _dadosArquivo!["ds_caminho"]?.toString() 
-                    ?? "";
-    
-    final tipoArquivo = _dadosArquivo!["id_tipo_etapa"]?.toString() 
-                     ?? _dadosArquivo!["ds_tipo"]?.toString() 
-                     ?? "";
+    final urlArquivo =
+        _dadosArquivo!["s_caminho"]?.toString() ??
+        _dadosArquivo!["ds_caminho"]?.toString() ??
+        "";
+
+    final tipoArquivo =
+        _dadosArquivo!["id_tipo_etapa"]?.toString() ??
+        _dadosArquivo!["ds_tipo"]?.toString() ??
+        "";
 
     return Column(
       children: [
@@ -1699,7 +1745,7 @@ class _ConteudoEtapaScreenState extends State<ConteudoEtapaScreen> {
             ),
           ),
         ),
-        
+
         // --- NOVA OPÇÃO DE MARCAR COMO CONCLUÍDO (Fixa embaixo) ---
         _buildOpcaoConclusao(),
       ],
@@ -1717,22 +1763,22 @@ class _ConteudoEtapaScreenState extends State<ConteudoEtapaScreen> {
       child: Row(
         children: [
           Checkbox(
-            value: _concluido, 
+            value: _concluido,
             activeColor: Colors.green,
             onChanged: (bool? novoValor) {
               setState(() {
                 _concluido = novoValor ?? false;
               });
-              
+
               if (_concluido) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text("Etapa marcada como concluída!"),
                     duration: Duration(seconds: 1),
-                  )
+                  ),
                 );
               }
-            }
+            },
           ),
           const Expanded(
             child: Text(
@@ -1747,21 +1793,23 @@ class _ConteudoEtapaScreenState extends State<ConteudoEtapaScreen> {
 
   Widget _buildVisualizador(String url, String tipo) {
     if (url.isEmpty) {
-      return const Center(child: Text("Esta etapa não possui arquivo anexado."));
+      return const Center(
+        child: Text("Esta etapa não possui arquivo anexado."),
+      );
     }
 
     String urlLimpa = url.trim();
     String nomeArquivo = urlLimpa.replaceAll("files/", "").replaceAll("/", "");
-    String urlFinal = "http://200.19.1.19/usuario02/api/arquivo.php?ver_imagem=$nomeArquivo";
+    String urlFinal =
+        "http://200.19.1.19/usuario02/api/arquivo.php?ver_imagem=$nomeArquivo";
 
-    if (tipo.toLowerCase().contains("imagem") || 
-        nomeArquivo.toLowerCase().endsWith(".jpg") || 
+    if (tipo.toLowerCase().contains("imagem") ||
+        nomeArquivo.toLowerCase().endsWith(".jpg") ||
         nomeArquivo.toLowerCase().endsWith(".png") ||
         nomeArquivo.toLowerCase().endsWith(".jpeg")) {
-      
       return Image.network(
         urlFinal,
-        headers: const {"Cache-Control": "no-cache"}, 
+        headers: const {"Cache-Control": "no-cache"},
         errorBuilder: (context, error, stackTrace) => Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
@@ -1774,8 +1822,7 @@ class _ConteudoEtapaScreenState extends State<ConteudoEtapaScreen> {
           return const Center(child: CircularProgressIndicator());
         },
       );
-    } 
-    else {
+    } else {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -1787,8 +1834,9 @@ class _ConteudoEtapaScreenState extends State<ConteudoEtapaScreen> {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          const Text("Formato não suportado para visualização no app.", 
-            style: TextStyle(fontSize: 11, color: Colors.grey)
+          const Text(
+            "Formato não suportado para visualização no app.",
+            style: TextStyle(fontSize: 11, color: Colors.grey),
           ),
         ],
       );
@@ -1810,13 +1858,14 @@ class TelaResolverQuestionario extends StatefulWidget {
   });
 
   @override
-  State<TelaResolverQuestionario> createState() => _TelaResolverQuestionarioState();
+  State<TelaResolverQuestionario> createState() =>
+      _TelaResolverQuestionarioState();
 }
 
 class _TelaResolverQuestionarioState extends State<TelaResolverQuestionario> {
   bool _isLoading = true;
   List<dynamic> _questoes = [];
-  
+
   final Map<int, int> _respostasSelecionadas = {};
 
   @override
@@ -1826,8 +1875,9 @@ class _TelaResolverQuestionarioState extends State<TelaResolverQuestionario> {
   }
 
   Future<void> _carregarQuestoes() async {
-    final url = "http://200.19.1.19/usuario02/api/questionario.php?acao=carregar_questoes&id_questionario=${widget.idQuestionario}";
-    
+    final url =
+        "http://200.19.1.19/usuario02/api/questionario.php?acao=carregar_questoes&id_questionario=${widget.idQuestionario}";
+
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -1854,21 +1904,21 @@ class _TelaResolverQuestionarioState extends State<TelaResolverQuestionario> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _questoes.isEmpty
-              ? const Center(child: Text("Este questionário está vazio."))
-              : Column(
-                  children: [
-                    Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _questoes.length,
-                        itemBuilder: (context, index) {
-                          return _buildQuestaoCard(_questoes[index], index + 1);
-                        },
-                      ),
-                    ),
-                    _buildBotaoEnviar(),
-                  ],
+          ? const Center(child: Text("Este questionário está vazio."))
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _questoes.length,
+                    itemBuilder: (context, index) {
+                      return _buildQuestaoCard(_questoes[index], index + 1);
+                    },
+                  ),
                 ),
+                _buildBotaoEnviar(),
+              ],
+            ),
     );
   }
 
@@ -1893,13 +1943,14 @@ class _TelaResolverQuestionarioState extends State<TelaResolverQuestionario> {
               int idAlternativa = int.parse(alt["id_alternativa"].toString());
               String textoAlternativa = alt["ds_alternativa"];
 
-              bool estaMarcada = _respostasSelecionadas[idPergunta] == idAlternativa;
+              bool estaMarcada =
+                  _respostasSelecionadas[idPergunta] == idAlternativa;
 
               return CheckboxListTile(
                 title: Text(textoAlternativa),
                 value: estaMarcada,
                 activeColor: Colors.blue,
-                controlAffinity: ListTileControlAffinity.leading, 
+                controlAffinity: ListTileControlAffinity.leading,
                 onChanged: (bool? valor) {
                   setState(() {
                     if (valor == true) {
@@ -1927,15 +1978,17 @@ class _TelaResolverQuestionarioState extends State<TelaResolverQuestionario> {
         onPressed: () {
           // Simula envio
           print("Respostas do Aluno: $_respostasSelecionadas");
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(content: Text("Respostas enviadas! Voltando para a lista..."))
+            SnackBar(
+              content: Text("Respostas enviadas! Voltando para a lista..."),
+            ),
           );
 
           // Aguarda e volta para a lista de etapas
           Future.delayed(const Duration(milliseconds: 1500), () {
-            Navigator.of(context).pop(); 
-            Navigator.of(context).pop(); 
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
           });
         },
         style: ElevatedButton.styleFrom(

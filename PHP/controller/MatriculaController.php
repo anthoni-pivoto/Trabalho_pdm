@@ -25,18 +25,17 @@ class MatriculaController {
             return $stmt->execute();
 
         } catch (PDOException $e) {
-            echo json_encode(["erro" => "Falha ao criar matrÃ­cula: " . $e->getMessage()]);
+            echo json_encode(["erro" => "Falha ao criar matrícula: " . $e->getMessage()]);
             return false;
         }
     }
-
     public function listarMatriculas() {
         try {
             $sql = "SELECT * FROM tb_matricula ORDER BY s_matricula";
             $stmt = $this->conn->query($sql);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
-            echo json_encode(["erro" => "Falha ao listar matrÃ­culas: " . $e->getMessage()]);
+            echo json_encode(["erro" => "Falha ao listar matrículas: " . $e->getMessage()]);
             return [];
         }
     }
@@ -54,7 +53,7 @@ class MatriculaController {
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         } catch (PDOException $e) {
-            echo json_encode(["erro" => "Falha ao listar matrÃ­culas: " . $e->getMessage()]);
+            echo json_encode(["erro" => "Falha ao listar matrículas: " . $e->getMessage()]);
             return [];
         }
     }
@@ -72,7 +71,7 @@ class MatriculaController {
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         } catch (PDOException $e) {
-            echo json_encode(["erro" => "Falha ao listar matrÃ­culas: " . $e->getMessage()]);
+            echo json_encode(["erro" => "Falha ao listar matrículas: " . $e->getMessage()]);
             return [];
         }
     }
@@ -91,7 +90,7 @@ class MatriculaController {
             return $stmt->fetch(PDO::FETCH_ASSOC);
 
         } catch (PDOException $e) {
-            echo json_encode(["erro" => "Falha ao buscar matrÃ­cula: " . $e->getMessage()]);
+            echo json_encode(["erro" => "Falha ao buscar matrícula: " . $e->getMessage()]);
             return null;
         }
     }
@@ -110,7 +109,7 @@ class MatriculaController {
             return $stmt->rowCount() > 0;
 
         } catch (PDOException $e) {
-            echo json_encode(["erro" => "Falha ao deletar matrÃ­cula: " . $e->getMessage()]);
+            echo json_encode(["erro" => "Falha ao deletar matrícula: " . $e->getMessage()]);
             return false;
         }
     }

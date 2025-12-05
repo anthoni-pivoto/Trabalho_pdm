@@ -69,6 +69,21 @@ class EtapaController
         return $stmt->execute();
     }
 
-
+public function listarPorCurso($idCurso)
+{
+    // Selecionamos o ID da etapa e a descrição do tipo
+    // Filtramos pelo id_curso (para trazer todas as etapas daquele curso)
+    // Fazemos o JOIN para ligar as tabelas
+    $sql = "SELECT a.id_etapa, b.s_descricao 
+            FROM tb_etapa a, tb_tipo_etapa b 
+            WHERE a.id_curso = :id_curso 
+            AND a.id_tipo_etapa = b.id_tipo_etapa";
+    
+    $stmt = $this->conn->prepare($sql);
+    $stmt->bindParam(":id_curso", $idCurso, PDO::PARAM_INT);
+    $stmt->execute();
+    
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
 }

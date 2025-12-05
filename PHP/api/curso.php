@@ -34,7 +34,7 @@ switch ($method) {
                     echo json_encode(["status" => "error", "message" => "Erro ao criar curso"]);
                 }
             } else {
-                http_response_code(231);
+                http_response_code(400);
                 echo json_encode(["status" => "error", "message" => "Dados incompletos"]);
             }
         } catch (Exception $e) {
@@ -68,6 +68,8 @@ switch ($method) {
     case "PUT":
         try {
             $data = json_decode(file_get_contents("php://input")); 
+            http_response_code(202);
+            echo json_encode($data);
             if (!empty($data->id_curso) && !empty($data->nm_curso) && !empty($data->ds_curso)) {
                 $curso = new Curso($data->nm_curso, $data->ds_curso, null, $data->id_curso);
 

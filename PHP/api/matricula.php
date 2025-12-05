@@ -19,7 +19,7 @@ switch ($method) {
     case "POST":
         try {
             $data = json_decode(file_get_contents("php://input"));
-
+	
             if (!empty($data->id_usuario) && !empty($data->id_curso)) {
 
                 $matricula = new Matricula(
@@ -27,17 +27,17 @@ switch ($method) {
                     $data->id_curso,
                     null
                 );
-
+		
                 if ($controller->criarMatricula($matricula)) {
                     echo json_encode([
                         "status" => "success",
-                        "message" => "MatrÃ­cula criada com sucesso"
+                        "message" => "Matrícula criada com sucesso"
                     ]);
                 } else {
                     http_response_code(500);
                     echo json_encode([
                         "status" => "error",
-                        "message" => "Erro ao criar matrÃ­cula"
+                        "message" => "Erro ao criar matrícula"
                     ]);
                 }
             } else {
@@ -52,7 +52,7 @@ switch ($method) {
             http_response_code(500);
             echo json_encode([
                 "status" => "error",
-                "message" => "Erro ao criar matrÃ­cula: " . $e->getMessage()
+                "message" => "Erro ao criar matrícula: " . $e->getMessage()
             ]);
         }
         break;
@@ -74,7 +74,7 @@ switch ($method) {
             http_response_code(500);
             echo json_encode([
                 "status" => "error",
-                "message" => "Erro ao buscar matrÃ­culas: " . $e->getMessage()
+                "message" => "Erro ao buscar matrículas: " . $e->getMessage()
             ]);
         }
         break;
@@ -85,13 +85,13 @@ switch ($method) {
                 if ($controller->deletarMatricula($_GET["id_usuario"], $_GET["id_curso"])) {
                     echo json_encode([
                         "status" => "success",
-                        "message" => "MatrÃ­cula excluÃ­da com sucesso"
+                        "message" => "Matrícula excluída com sucesso"
                     ]);
                 } else {
                     http_response_code(500);
                     echo json_encode([
                         "status" => "error",
-                        "message" => "Erro ao excluir matrÃ­cula"
+                        "message" => "Erro ao excluir matrícula"
                     ]);
                 }
 
@@ -99,7 +99,7 @@ switch ($method) {
                 http_response_code(400);
                 echo json_encode([
                     "status" => "error",
-                    "message" => "ParÃ¢metros id_usuario e id_curso sÃ£o obrigatÃ³rios"
+                    "message" => "Parâmetros id_usuario e id_curso são obrigatórios"
                 ]);
             }
 
@@ -107,7 +107,7 @@ switch ($method) {
             http_response_code(500);
             echo json_encode([
                 "status" => "error",
-                "message" => "Erro ao excluir matrÃ­cula: " . $e->getMessage()
+                "message" => "Erro ao excluir matrícula: " . $e->getMessage()
             ]);
         }
         break;
@@ -115,7 +115,7 @@ switch ($method) {
         http_response_code(405);
         echo json_encode([
             "status" => "error",
-            "message" => "MÃ©todo nÃ£o permitido"
+            "message" => "Método não permitido"
         ]);
         break;
 }
