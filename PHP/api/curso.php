@@ -21,9 +21,9 @@ switch ($method) {
             $data = json_decode(file_get_contents("php://input")); // sem ,true → objeto
             if (!empty($data->nm_curso) && !empty($data->ds_curso) && !empty($data->id_usuario)) {
                 $curso = new Curso(
+                    $data->id_usuario,
                     $data->nm_curso,
                     $data->ds_curso,
-                    $data->id_usuario,
                     null
                 );
                 if ($controller->criarCurso($curso)) {
@@ -34,7 +34,7 @@ switch ($method) {
                     echo json_encode(["status" => "error", "message" => "Erro ao criar curso"]);
                 }
             } else {
-                http_response_code(400);
+                http_response_code(231);
                 echo json_encode(["status" => "error", "message" => "Dados incompletos"]);
             }
         } catch (Exception $e) {
@@ -67,7 +67,7 @@ switch ($method) {
 
     case "PUT":
         try {
-            $data = json_decode(file_get_contents("php://input")); // sem ,true → objeto
+            $data = json_decode(file_get_contents("php://input")); 
             if (!empty($data->id_curso) && !empty($data->nm_curso) && !empty($data->ds_curso)) {
                 $curso = new Curso($data->nm_curso, $data->ds_curso, null, $data->id_curso);
 
